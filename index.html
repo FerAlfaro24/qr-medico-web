@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Médico - Redirigiendo...</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #1976D2, #D32F2F);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 400px;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+        
+        .loading {
+            margin: 30px 0;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #1976D2;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .manual-buttons {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: #1976D2;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 2px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🏥</div>
+        <h1>QR Médico</h1>
+        <p>Redirigiendo a la información de emergencia...</p>
+        
+        <div class="loading">
+            <div class="spinner"></div>
+        </div>
+        
+        <div class="manual-buttons" id="manualButtons">
+            <p>¿No se abrió automáticamente?</p>
+            <a href="#" id="appLink" class="btn btn-primary">📱 Abrir en la App</a>
+            <a href="#" id="webLink" class="btn btn-secondary">🌐 Ver en Navegador</a>
+        </div>
+    </div>
+
+    <script>
+        // Obtener parámetros de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const webUrl = urlParams.get('web');
+        const appUrl = urlParams.get('app');
+        
+        let appOpened = false;
+        
+        function tryOpenApp() {
+            if (appUrl) {
+                // Intentar abrir la app
+                window.location.href = appUrl;
+                appOpened = true;
+                
+                // Si después de 2 segundos no se abrió la app, mostrar opciones manuales
+                setTimeout(() => {
+                    if (!document.hidden) {
+                        showManualOptions();
+                    }
+                }, 2000);
+            } else {
+                // Si no hay URL de app, ir directo a web
+                openWeb();
+            }
+        }
+        
+        function openWeb() {
+            if (webUrl) {
+                window.location.href = webUrl;
+            } else {
+                showError();
+            }
+        }
+        
+        function showManualOptions() {
+            document.querySelector('.loading').style.display = 'none';
+            const manualButtons = document.getElementById('manualButtons');
+            manualButtons.style.display = 'block';
+            
+            // Configurar botones
+            if (appUrl) {
+                document.getElementById('appLink').href = appUrl;
+            } else {
+                document.getElementById('appLink').style.display = 'none';
+            }
+            
+            if (webUrl) {
+                document.getElementById('webLink').href = webUrl;
+            } else {
+                document.getElementById('webLink').style.display = 'none';
+            }
+        }
+        
+        function showError() {
+            document.querySelector('.container').innerHTML = `
+                <div class="logo">❌</div>
+                <h1>Error</h1>
+                <p>No se pudo cargar la información de emergencia.</p>
+                <p><strong>¿Necesitas ayuda médica urgente?</strong></p>
+                <a href="tel:911" class="btn btn-primary">🚨 LLAMAR 911</a>
+            `;
+        }
+        
+        // Detectar si volvemos a la página (app no se abrió)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && appOpened) {
+                setTimeout(showManualOptions, 1000);
+            }
+        });
+        
+        // Intentar abrir la app al cargar la página
+        tryOpenApp();
+    </script>
+</body>
+</html>
